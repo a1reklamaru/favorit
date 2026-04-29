@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Дашборд рекламы 2025 | Фаворит - металл</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #17202a;
+      --muted: #687381;
+      --line: #dfe5eb;
+      --blue: #246bfe;
+      --green: #0f9d73;
+      --amber: #c98313;
+      --red: #d64545;
+      --violet: #6f55d9;
+      --shadow: 0 18px 38px rgba(31, 45, 61, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 22px 42px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      padding: 22px 0 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.05;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      max-width: 780px;
+      font-size: 16px;
+    }
+
+    .badge {
+      justify-self: end;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .period-control {
+      justify-self: end;
+      min-width: 260px;
+      display: grid;
+      gap: 7px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .period-control label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .period-control select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 15px;
+      padding: 10px 12px;
+      min-height: 42px;
+    }
+
+    .period-note {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(140px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+
+    .kpi,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi {
+      padding: 16px;
+      min-height: 116px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    .kpi:hover {
+      border-color: var(--green);
+      box-shadow: 0 22px 46px rgba(15, 157, 115, 0.18), 0 8px 18px rgba(31, 45, 61, 0.10);
+      transform: translateY(-3px);
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .kpi .value {
+      margin-top: 12px;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .kpi .note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .is-hidden {
+      display: none !important;
+    }
+
+    .panel h2 {
+      margin: 0 0 4px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    .panel .hint {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chart {
+      width: 100%;
+      height: 330px;
+      display: block;
+    }
+
+    .chart.compact { height: 280px; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }
+
+    .insight {
+      border-left: 4px solid var(--blue);
+      padding: 12px 14px;
+      background: var(--panel);
+      border-radius: 8px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .insight strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .insight p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+      background: var(--panel);
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child,
+    th:nth-child(2),
+    td:nth-child(2) {
+      text-align: left;
+    }
+
+    th {
+      background: #eef2f6;
+      color: #354251;
+      font-weight: 700;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    .missing td { color: var(--muted); background: #fafbfc; }
+    .total-row td { font-weight: 700; background: #f1f6f4; }
+
+    .footnote {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(3, 1fr); }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .page { padding: 18px 14px 32px; }
+      header { grid-template-columns: 1fr; }
+      .badge,
+      .period-control { justify-self: stretch; }
+      .kpis,
+      .insights { grid-template-columns: 1fr; }
+      .chart,
+      .chart.compact { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <h1>Реклама «Фаворит - металл»: 2025</h1>
+        <p class="subtitle">Общая сводка по поисковой рекламе и РСЯ: показы, клики, CTR, расход, средняя цена клика и средняя позиция показа.</p>
+      </div>
+      <div class="period-control">
+        <label for="period-select">Период</label>
+        <select id="period-select" aria-label="Выбор периода">
+          <option value="year">Весь 2025 год</option>
+        </select>
+        <div class="period-note" id="period-note">Январь-март, май-декабрь 2025</div>
+      </div>
+    </header>
+
+    <section class="kpis" aria-label="Ключевые показатели">
+      <div class="kpi">
+        <div class="label">Показы</div>
+        <div class="value" id="kpi-impressions"></div>
+        <div class="note" id="note-impressions">Всего за доступные месяцы</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Клики</div>
+        <div class="value" id="kpi-clicks"></div>
+        <div class="note">Переходы по рекламе</div>
+      </div>
+      <div class="kpi">
+        <div class="label">CTR</div>
+        <div class="value" id="kpi-ctr"></div>
+        <div class="note">Клики / показы</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Расход</div>
+        <div class="value" id="kpi-spend"></div>
+        <div class="note">Рекламный бюджет</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Средний CPC</div>
+        <div class="value" id="kpi-cpc"></div>
+        <div class="note">Расход / клики</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Средняя позиция</div>
+        <div class="value" id="kpi-position"></div>
+        <div class="note" id="note-position">Взвешено по показам</div>
+      </div>
+    </section>
+
+    <section class="grid" id="charts-section">
+      <article class="panel">
+        <h2>Охват и трафик по месяцам</h2>
+        <p class="hint" id="volume-hint">Столбцы показывают показы, линия показывает клики. Апрель отсутствует в исходном файле.</p>
+        <svg id="volume-chart" class="chart" role="img" aria-label="Показы и клики по месяцам"></svg>
+        <div class="legend">
+          <span><i class="dot" style="background: var(--blue)"></i>Показы</span>
+          <span><i class="dot" style="background: var(--green)"></i>Клики</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Расход и цена клика</h2>
+        <p class="hint" id="cost-hint">Столбцы показывают расход, линия показывает средний CPC.</p>
+        <svg id="cost-chart" class="chart compact" role="img" aria-label="Расход и средняя цена клика"></svg>
+        <div class="legend">
+          <span><i class="dot" style="background: var(--amber)"></i>Расход</span>
+          <span><i class="dot" style="background: var(--red)"></i>CPC</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>CTR</h2>
+        <p class="hint" id="ctr-hint">Доля кликов от показов. Лучший месяц по CTR - август.</p>
+        <svg id="ctr-chart" class="chart compact" role="img" aria-label="CTR по месяцам"></svg>
+      </article>
+
+      <article class="panel">
+        <h2>Средняя позиция показа</h2>
+        <p class="hint">Чем ниже значение, тем выше средняя позиция объявления.</p>
+        <svg id="position-chart" class="chart compact" role="img" aria-label="Средняя позиция показа по месяцам"></svg>
+      </article>
+    </section>
+
+    <section class="insights" aria-label="Выводы">
+      <div class="insight" style="border-left-color: var(--green)">
+        <strong id="insight-1-title">Самый высокий CTR: август</strong>
+        <p id="insight-1-text">4,53% при 30 515 показах и 1 383 кликах.</p>
+      </div>
+      <div class="insight" style="border-left-color: var(--amber)">
+        <strong id="insight-2-title">Пик расхода: сентябрь</strong>
+        <p id="insight-2-text">24 090,92 ₽, при этом CTR удержался на уровне 3,84%.</p>
+      </div>
+      <div class="insight" style="border-left-color: var(--red)">
+        <strong id="insight-3-title">Самый дорогой клик: февраль</strong>
+        <p id="insight-3-text">Средний CPC 23,43 ₽, это заметно выше годового среднего 11,35 ₽.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 id="table-title">Месячная таблица</h2>
+      <p class="hint" id="table-hint">Годовые CTR и CPC рассчитаны от суммарных показов, кликов и расхода; средняя позиция взвешена по показам.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Месяц</th>
+              <th>Период</th>
+              <th>Показы</th>
+              <th>Клики</th>
+              <th>CTR</th>
+              <th>Расход, ₽</th>
+              <th>CPC, ₽</th>
+              <th>Средняя позиция</th>
+            </tr>
+          </thead>
+          <tbody id="data-table"></tbody>
+        </table>
+      </div>
+      <p class="footnote">Источник: файл «Реклама «Фаворит - металл» .xlsx». В книге нет отдельного листа за апрель 2025, поэтому апрель показан как пропуск и не входит в итоговые расчеты.</p>
+    </section>
+  </main>
+
+  <script>
+    const months = [
+      { month: 'Январь', short: 'Янв', period: 'с 01.01.2025 - 31.01.2025', impressions: 154987, clicks: 1858, ctr: 0.01198810223, spend: 18000, cpc: 9.69, position: 2.17 },
+      { month: 'Февраль', short: 'Фев', period: 'с 01.02.2025 - 28.02.2025', impressions: 87458, clicks: 762, ctr: 0.00871275355, spend: 17855.33, cpc: 23.43, position: 2.23 },
+      { month: 'Март', short: 'Мар', period: 'с 01.03.2025 - 31.03.2025', impressions: 98980, clicks: 916, ctr: 0.009254394827, spend: 18144.67, cpc: 19.81, position: 2.07 },
+      { month: 'Апрель', short: 'Апр', period: 'нет листа в файле', missing: true },
+      { month: 'Май', short: 'Май', period: 'с 01.05.2025 - 31.05.2025', impressions: 186898, clicks: 1787, ctr: 0.009561365023, spend: 15000, cpc: 8.39, position: 2.07 },
+      { month: 'Июнь', short: 'Июн', period: 'с 01.06.2025 - 30.06.2025', impressions: 34143, clicks: 1138, ctr: 0.03333040448, spend: 17823.17, cpc: 15.66, position: 2.19 },
+      { month: 'Июль', short: 'Июл', period: 'с 01.07.2025 - 31.07.2025', impressions: 43497, clicks: 1123, ctr: 0.0258178725, spend: 18181.7, cpc: 16.19, position: 2.55 },
+      { month: 'Август', short: 'Авг', period: 'с 01.08.2025 - 31.08.2025', impressions: 30515, clicks: 1383, ctr: 0.0453219728, spend: 15871.74, cpc: 11.48, position: 2.7 },
+      { month: 'Сентябрь', short: 'Сен', period: 'с 01.09.2025 - 30.09.2025', impressions: 45330, clicks: 1740, ctr: 0.03838517538, spend: 24090.92, cpc: 13.85, position: 3.26 },
+      { month: 'Октябрь', short: 'Окт', period: 'с 01.10.2025 - 31.10.2025', impressions: 51285, clicks: 2147, ctr: 0.04186409281, spend: 15031.25, cpc: 7, position: 2.94 },
+      { month: 'Ноябрь', short: 'Ноя', period: 'с 01.11.2025 - 30.11.2025', impressions: 71551, clicks: 2311, ctr: 0.03229864013, spend: 14928.39, cpc: 6.46, position: 2.92 },
+      { month: 'Декабрь', short: 'Дек', period: 'с 01.12.2025 - 31.12.2025', impressions: 47893, clicks: 1573, ctr: 0.03284404819, spend: 15077.7, cpc: 9.59, position: 3.13 }
+    ];
+
+    const css = getComputedStyle(document.documentElement);
+    const colors = {
+      blue: css.getPropertyValue('--blue').trim(),
+      green: css.getPropertyValue('--green').trim(),
+      amber: css.getPropertyValue('--amber').trim(),
+      red: css.getPropertyValue('--red').trim(),
+      violet: css.getPropertyValue('--violet').trim(),
+      muted: css.getPropertyValue('--muted').trim(),
+      line: css.getPropertyValue('--line').trim()
+    };
+
+    let selectedPeriod = 'year';
+    const chartRenderers = [];
+    const periodSelect = document.getElementById('period-select');
+
+    months.forEach((item, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = item.month;
+      periodSelect.appendChild(option);
+    });
+
+    periodSelect.addEventListener('change', () => {
+      selectedPeriod = periodSelect.value;
+      renderDashboard();
+    });
+
+    function getVisibleMonths() {
+      if (selectedPeriod === 'year') return months;
+      return [months[Number(selectedPeriod)]];
+    }
+
+    function getAvailable(list = getVisibleMonths()) {
+      return list.filter((item) => !item.missing);
+    }
+
+    function calculateTotals(list = getVisibleMonths()) {
+      const available = getAvailable(list);
+      const totals = available.reduce((acc, item) => {
+        acc.impressions += item.impressions;
+        acc.clicks += item.clicks;
+        acc.spend += item.spend;
+        acc.positionWeight += item.position * item.impressions;
+        return acc;
+      }, { impressions: 0, clicks: 0, spend: 0, positionWeight: 0 });
+
+      totals.ctr = totals.impressions ? totals.clicks / totals.impressions : null;
+      totals.cpc = totals.clicks ? totals.spend / totals.clicks : null;
+      totals.position = totals.impressions ? totals.positionWeight / totals.impressions : null;
+      return totals;
+    }
+
+    function fmtInt(value) {
+      return Math.round(value).toLocaleString('ru-RU');
+    }
+
+    function fmtMoney(value) {
+      return value.toLocaleString('ru-RU', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+    }
+
+    function fmtPercent(value) {
+      return (value * 100).toLocaleString('ru-RU', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) + '%';
+    }
+
+    function fmtFixed(value, digits = 2) {
+      return value.toLocaleString('ru-RU', { maximumFractionDigits: digits, minimumFractionDigits: digits });
+    }
+
+    function fmtMaybe(value, formatter, suffix = '') {
+      if (value === null || value === undefined || Number.isNaN(value)) return '-';
+      return formatter(value) + suffix;
+    }
+
+    function renderKpis(totals, list) {
+      const singleMonth = selectedPeriod !== 'year';
+      const hasData = getAvailable(list).length > 0;
+      document.getElementById('kpi-impressions').textContent = hasData ? fmtInt(totals.impressions) : '-';
+      document.getElementById('kpi-clicks').textContent = hasData ? fmtInt(totals.clicks) : '-';
+      document.getElementById('kpi-ctr').textContent = fmtMaybe(totals.ctr, fmtPercent);
+      document.getElementById('kpi-spend').textContent = hasData ? fmtMoney(totals.spend) + ' ₽' : '-';
+      document.getElementById('kpi-cpc').textContent = fmtMaybe(totals.cpc, (value) => fmtFixed(value), ' ₽');
+      document.getElementById('kpi-position').textContent = fmtMaybe(totals.position, (value) => fmtFixed(value));
+      document.getElementById('note-impressions').textContent = singleMonth ? 'За выбранный месяц' : 'Всего за доступные месяцы';
+      document.getElementById('note-position').textContent = singleMonth ? 'За выбранный месяц' : 'Взвешено по показам';
+      document.getElementById('period-note').textContent = singleMonth ? list[0].period : 'Январь-март, май-декабрь 2025';
+    }
+
+    function renderInsights(totals, list) {
+      const available = getAvailable(list);
+      if (!available.length) {
+        document.getElementById('insight-1-title').textContent = 'Нет данных за выбранный месяц';
+        document.getElementById('insight-1-text').textContent = 'В исходной книге отсутствует отдельный лист за апрель 2025.';
+        document.getElementById('insight-2-title').textContent = 'Итоги не пересчитаны';
+        document.getElementById('insight-2-text').textContent = 'Выберите весь год или месяц с данными, чтобы увидеть статистику.';
+        document.getElementById('insight-3-title').textContent = 'Графики без значений';
+        document.getElementById('insight-3-text').textContent = 'Пустой месяц показан как пропуск, без влияния на годовую сводку.';
+        return;
+      }
+
+      if (selectedPeriod === 'year') {
+        const bestCtr = available.reduce((best, item) => item.ctr > best.ctr ? item : best, available[0]);
+        const maxSpend = available.reduce((best, item) => item.spend > best.spend ? item : best, available[0]);
+        const maxCpc = available.reduce((best, item) => item.cpc > best.cpc ? item : best, available[0]);
+        document.getElementById('insight-1-title').textContent = `Самый высокий CTR: ${bestCtr.month.toLowerCase()}`;
+        document.getElementById('insight-1-text').textContent = `${fmtPercent(bestCtr.ctr)} при ${fmtInt(bestCtr.impressions)} показах и ${fmtInt(bestCtr.clicks)} кликах.`;
+        document.getElementById('insight-2-title').textContent = `Пик расхода: ${maxSpend.month.toLowerCase()}`;
+        document.getElementById('insight-2-text').textContent = `${fmtMoney(maxSpend.spend)} ₽, при этом CTR ${fmtPercent(maxSpend.ctr)}.`;
+        document.getElementById('insight-3-title').textContent = `Самый дорогой клик: ${maxCpc.month.toLowerCase()}`;
+        document.getElementById('insight-3-text').textContent = `CPC ${fmtFixed(maxCpc.cpc)} ₽ против годового среднего ${fmtFixed(totals.cpc)} ₽.`;
+        return;
+      }
+
+      const item = available[0];
+      document.getElementById('insight-1-title').textContent = `Трафик за ${item.month.toLowerCase()}`;
+      document.getElementById('insight-1-text').textContent = `${fmtInt(item.impressions)} показов и ${fmtInt(item.clicks)} кликов.`;
+      document.getElementById('insight-2-title').textContent = 'Эффективность';
+      document.getElementById('insight-2-text').textContent = `CTR ${fmtPercent(item.ctr)}, средняя позиция ${fmtFixed(item.position)}.`;
+      document.getElementById('insight-3-title').textContent = 'Стоимость трафика';
+      document.getElementById('insight-3-text').textContent = `Расход ${fmtMoney(item.spend)} ₽, средний CPC ${fmtFixed(item.cpc)} ₽.`;
+    }
+
+    function renderTable(totals, list) {
+      const table = document.getElementById('data-table');
+      table.innerHTML = '';
+      list.forEach((item) => {
+        const tr = document.createElement('tr');
+        if (item.missing) {
+          tr.className = 'missing';
+          tr.innerHTML = `<td>${item.month}</td><td>${item.period}</td><td colspan="6">Нет данных в исходной книге</td>`;
+        } else {
+          tr.innerHTML = `
+            <td>${item.month}</td>
+            <td>${item.period}</td>
+            <td>${fmtInt(item.impressions)}</td>
+            <td>${fmtInt(item.clicks)}</td>
+            <td>${fmtPercent(item.ctr)}</td>
+            <td>${fmtMoney(item.spend)}</td>
+            <td>${fmtFixed(item.cpc)}</td>
+            <td>${fmtFixed(item.position)}</td>
+          `;
+        }
+        table.appendChild(tr);
+      });
+
+      if (selectedPeriod === 'year') {
+        const totalRow = document.createElement('tr');
+        totalRow.className = 'total-row';
+        totalRow.innerHTML = `
+          <td>Итого</td>
+          <td>11 доступных месяцев</td>
+          <td>${fmtInt(totals.impressions)}</td>
+          <td>${fmtInt(totals.clicks)}</td>
+          <td>${fmtPercent(totals.ctr)}</td>
+          <td>${fmtMoney(totals.spend)}</td>
+          <td>${fmtFixed(totals.cpc)}</td>
+          <td>${fmtFixed(totals.position)}</td>
+        `;
+        table.appendChild(totalRow);
+      }
+    }
+
+    function updateText(list) {
+      const singleMonth = selectedPeriod !== 'year';
+      document.getElementById('volume-hint').textContent = singleMonth
+        ? 'Столбец показывает показы выбранного месяца, точка показывает клики.'
+        : 'Столбцы показывают показы, линия показывает клики. Апрель отсутствует в исходном файле.';
+      document.getElementById('cost-hint').textContent = singleMonth
+        ? 'Столбец показывает расход выбранного месяца, точка показывает средний CPC.'
+        : 'Столбцы показывают расход, линия показывает средний CPC.';
+      document.getElementById('ctr-hint').textContent = singleMonth
+        ? 'CTR выбранного месяца: доля кликов от показов.'
+        : 'Доля кликов от показов. Лучший месяц по CTR - август.';
+      document.getElementById('table-title').textContent = singleMonth ? `Таблица: ${list[0].month}` : 'Месячная таблица';
+      document.getElementById('table-hint').textContent = singleMonth
+        ? 'В таблице показаны значения только за выбранный месяц.'
+        : 'Годовые CTR и CPC рассчитаны от суммарных показов, кликов и расхода; средняя позиция взвешена по показам.';
+    }
+
+    function renderDashboard() {
+      const list = getVisibleMonths();
+      const totals = calculateTotals(list);
+      renderKpis(totals, list);
+      renderInsights(totals, list);
+      renderTable(totals, list);
+      updateText(list);
+      const showCharts = selectedPeriod === 'year';
+      document.getElementById('charts-section').classList.toggle('is-hidden', !showCharts);
+      if (showCharts) {
+        chartRenderers.forEach((render) => render());
+      }
+    }
+
+    function makeSvg(id, draw) {
+      const svg = document.getElementById(id);
+      const render = () => {
+        const width = Math.max(svg.clientWidth, 320);
+        const height = Math.max(svg.clientHeight, 240);
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.innerHTML = '';
+        draw(svg, width, height);
+      };
+      chartRenderers.push(render);
+      window.addEventListener('resize', render);
+    }
+
+    function node(name, attrs = {}, text = '') {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+      Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+      if (text) el.textContent = text;
+      return el;
+    }
+
+    function scale(value, min, max, start, end) {
+      if (max === min) return (start + end) / 2;
+      return start + ((value - min) / (max - min)) * (end - start);
+    }
+
+    function drawAxes(svg, width, height, labels, plot) {
+      [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
+        const y = plot.bottom - tick * (plot.bottom - plot.top);
+        svg.appendChild(node('line', { x1: plot.left, y1: y, x2: plot.right, y2: y, stroke: colors.line, 'stroke-width': 1 }));
+      });
+      labels.forEach((label, index) => {
+        const x = scale(index, 0, labels.length - 1, plot.left, plot.right);
+        svg.appendChild(node('text', { x, y: height - 12, 'text-anchor': 'middle', fill: colors.muted, 'font-size': 12 }, label));
+      });
+    }
+
+    function drawMissing(svg, x, plot) {
+      svg.appendChild(node('line', { x1: x, y1: plot.top, x2: x, y2: plot.bottom, stroke: colors.line, 'stroke-width': 1, 'stroke-dasharray': '5 5' }));
+      svg.appendChild(node('text', { x, y: plot.top + 14, 'text-anchor': 'middle', fill: colors.muted, 'font-size': 11 }, 'нет данных'));
+    }
+
+    function drawNoData(svg, width, height) {
+      svg.appendChild(node('text', { x: width / 2, y: height / 2, 'text-anchor': 'middle', fill: colors.muted, 'font-size': 15 }, 'Нет данных за выбранный период'));
+    }
+
+    function drawComboChart(svg, width, height, barsKey, lineKey, barColor, lineColor, lineFormat) {
+      const chartMonths = getVisibleMonths();
+      const chartAvailable = getAvailable(chartMonths);
+      if (!chartAvailable.length) {
+        drawNoData(svg, width, height);
+        return;
+      }
+      const plot = { left: 48, right: width - 24, top: 20, bottom: height - 44 };
+      drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot);
+      const maxBar = Math.max(...chartAvailable.map((item) => item[barsKey])) * 1.12;
+      const maxLine = Math.max(...chartAvailable.map((item) => item[lineKey])) * 1.15;
+      const slot = (plot.right - plot.left) / Math.max(chartMonths.length, 1);
+      const barWidth = Math.max(12, slot * 0.52);
+      const linePoints = [];
+
+      chartMonths.forEach((item, index) => {
+        const x = scale(index, 0, chartMonths.length - 1, plot.left, plot.right);
+        if (item.missing) {
+          drawMissing(svg, x, plot);
+          return;
+        }
+        const y = scale(item[barsKey], 0, maxBar, plot.bottom, plot.top);
+        svg.appendChild(node('rect', { x: x - barWidth / 2, y, width: barWidth, height: plot.bottom - y, rx: 4, fill: barColor, opacity: 0.86 }));
+        const lineY = scale(item[lineKey], 0, maxLine, plot.bottom, plot.top);
+        linePoints.push([x, lineY, item[lineKey]]);
+      });
+
+      svg.appendChild(node('path', { d: linePoints.map((point, index) => `${index ? 'L' : 'M'} ${point[0]} ${point[1]}`).join(' '), fill: 'none', stroke: lineColor, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      linePoints.forEach((point) => {
+        svg.appendChild(node('circle', { cx: point[0], cy: point[1], r: 4, fill: lineColor, stroke: '#fff', 'stroke-width': 2 }));
+      });
+
+      svg.appendChild(node('text', { x: plot.left, y: 14, fill: colors.muted, 'font-size': 12 }, barsKey === 'impressions' ? 'показы' : 'руб.'));
+      svg.appendChild(node('text', { x: plot.right, y: 14, 'text-anchor': 'end', fill: colors.muted, 'font-size': 12 }, lineFormat(maxLine / 1.15)));
+    }
+
+    function drawLineChart(svg, width, height, key, color, formatter, options = {}) {
+      const chartMonths = getVisibleMonths();
+      const chartAvailable = getAvailable(chartMonths);
+      if (!chartAvailable.length) {
+        drawNoData(svg, width, height);
+        return;
+      }
+      const plot = { left: 44, right: width - 24, top: 20, bottom: height - 44 };
+      drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot);
+      const values = chartAvailable.map((item) => item[key]);
+      let min = options.zeroBase ? 0 : Math.min(...values) * 0.92;
+      let max = Math.max(...values) * 1.08;
+      if (options.invert) {
+        min = Math.min(...values) * 0.94;
+        max = Math.max(...values) * 1.04;
+      }
+      const points = [];
+
+      chartMonths.forEach((item, index) => {
+        const x = scale(index, 0, chartMonths.length - 1, plot.left, plot.right);
+        if (item.missing) {
+          drawMissing(svg, x, plot);
+          return;
+        }
+        const y = options.invert
+          ? scale(item[key], min, max, plot.top, plot.bottom)
+          : scale(item[key], min, max, plot.bottom, plot.top);
+        points.push([x, y, item[key]]);
+      });
+
+      const area = `M ${points[0][0]} ${plot.bottom} ` + points.map((point) => `L ${point[0]} ${point[1]}`).join(' ') + ` L ${points[points.length - 1][0]} ${plot.bottom} Z`;
+      svg.appendChild(node('path', { d: area, fill: color, opacity: 0.12 }));
+      svg.appendChild(node('path', { d: points.map((point, index) => `${index ? 'L' : 'M'} ${point[0]} ${point[1]}`).join(' '), fill: 'none', stroke: color, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      points.forEach((point) => {
+        svg.appendChild(node('circle', { cx: point[0], cy: point[1], r: 4, fill: color, stroke: '#fff', 'stroke-width': 2 }));
+      });
+      svg.appendChild(node('text', { x: plot.left, y: 14, fill: colors.muted, 'font-size': 12 }, formatter(min)));
+      svg.appendChild(node('text', { x: plot.right, y: 14, 'text-anchor': 'end', fill: colors.muted, 'font-size': 12 }, formatter(max)));
+    }
+
+    makeSvg('volume-chart', (svg, width, height) => {
+      drawComboChart(svg, width, height, 'impressions', 'clicks', colors.blue, colors.green, fmtInt);
+    });
+    makeSvg('cost-chart', (svg, width, height) => {
+      drawComboChart(svg, width, height, 'spend', 'cpc', colors.amber, colors.red, (value) => fmtFixed(value) + ' ₽');
+    });
+    makeSvg('ctr-chart', (svg, width, height) => {
+      drawLineChart(svg, width, height, 'ctr', colors.green, fmtPercent, { zeroBase: true });
+    });
+    makeSvg('position-chart', (svg, width, height) => {
+      drawLineChart(svg, width, height, 'position', colors.violet, (value) => fmtFixed(value), { invert: true });
+    });
+    renderDashboard();
+  </script>
+</body>
+</html>
