@@ -112,11 +112,6 @@
       min-height: 42px;
     }
 
-    .period-note {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
     .kpis {
       display: grid;
       grid-template-columns: repeat(6, minmax(140px, 1fr));
@@ -335,7 +330,6 @@
             <select id="month-select" aria-label="Выбор месяца"></select>
           </div>
         </div>
-        <div class="period-note" id="period-note">Январь-март, май-декабрь 2025</div>
       </div>
     </header>
 
@@ -535,18 +529,6 @@
       return list.filter((item) => !item.missing);
     }
 
-    function getYearPeriodNote() {
-      const yearMonths = getYearMonths();
-      const available = getAvailable(yearMonths);
-      const unavailable = yearMonths.length - available.length;
-      const monthText = available.length === yearMonths.length
-        ? `${available.length} месяцев`
-        : `${available.length} из ${yearMonths.length} месяцев`;
-      return unavailable
-        ? `${monthText}, есть пропуски в данных за ${selectedYear}`
-        : `${monthText} за ${selectedYear}`;
-    }
-
     function calculateTotals(list = getVisibleMonths()) {
       const available = getAvailable(list);
       const totals = available.reduce((acc, item) => {
@@ -595,7 +577,6 @@
       document.getElementById('kpi-position').textContent = fmtMaybe(totals.position, (value) => fmtFixed(value));
       document.getElementById('note-impressions').textContent = singleMonth ? 'За выбранный месяц' : 'Всего за доступные месяцы';
       document.getElementById('note-position').textContent = singleMonth ? 'За выбранный месяц' : 'Взвешено по показам';
-      document.getElementById('period-note').textContent = singleMonth ? list[0].period : getYearPeriodNote();
     }
 
     function renderInsights(totals, list) {
