@@ -71,7 +71,7 @@
 
     .period-control {
       justify-self: end;
-      min-width: 260px;
+      min-width: 340px;
       display: grid;
       gap: 7px;
       background: var(--panel);
@@ -79,6 +79,17 @@
       border-radius: 8px;
       padding: 12px;
       box-shadow: var(--shadow);
+    }
+
+    .period-fields {
+      display: grid;
+      grid-template-columns: minmax(110px, 0.7fr) minmax(160px, 1fr);
+      gap: 10px;
+    }
+
+    .period-field {
+      display: grid;
+      gap: 6px;
     }
 
     .period-control label {
@@ -298,6 +309,7 @@
       header { grid-template-columns: 1fr; }
       .badge,
       .period-control { justify-self: stretch; }
+      .period-fields { grid-template-columns: 1fr; }
       .kpis,
       .insights { grid-template-columns: 1fr; }
       .chart,
@@ -309,14 +321,20 @@
   <main class="page">
     <header>
       <div>
-        <h1>Реклама «Фаворит - металл»: 2025</h1>
+        <h1 id="dashboard-title">Реклама «Фаворит - металл»: 2025</h1>
         <p class="subtitle">Общая сводка по поисковой рекламе и РСЯ: показы, клики, CTR, расход, средняя цена клика и средняя позиция показа.</p>
       </div>
       <div class="period-control">
-        <label for="period-select">Период</label>
-        <select id="period-select" aria-label="Выбор периода">
-          <option value="year">Весь 2025 год</option>
-        </select>
+        <div class="period-fields">
+          <div class="period-field">
+            <label for="year-select">Год</label>
+            <select id="year-select" aria-label="Выбор года"></select>
+          </div>
+          <div class="period-field">
+            <label for="month-select">Месяц</label>
+            <select id="month-select" aria-label="Выбор месяца"></select>
+          </div>
+        </div>
         <div class="period-note" id="period-note">Январь-март, май-декабрь 2025</div>
       </div>
     </header>
@@ -454,29 +472,79 @@
       line: css.getPropertyValue('--line').trim()
     };
 
-    let selectedPeriod = 'year';
-    const chartRenderers = [];
-    const periodSelect = document.getElementById('period-select');
-
-    months.forEach((item, index) => {
-      const option = document.createElement('option');
-      option.value = String(index);
-      option.textContent = item.month;
-      periodSelect.appendChild(option);
+    months.forEach((item) => {
+      if (!item.year) item.year = 2025;
     });
 
-    periodSelect.addEventListener('change', () => {
-      selectedPeriod = periodSelect.value;
+    let selectedYear = Math.max(...months.map((item) => item.year));
+    let selectedMonth = 'year';
+    const chartRenderers = [];
+    const yearSelect = document.getElementById('year-select');
+    const monthSelect = document.getElementById('month-select');
+
+    const years = [...new Set(months.map((item) => item.year))].sort((a, b) => b - a);
+    years.forEach((year) => {
+      const option = document.createElement('option');
+      option.value = String(year);
+      option.textContent = String(year);
+      yearSelect.appendChild(option);
+    });
+    yearSelect.value = String(selectedYear);
+
+    function populateMonthSelect() {
+      const yearMonths = getYearMonths();
+      monthSelect.innerHTML = '';
+      const allOption = document.createElement('option');
+      allOption.value = 'year';
+      allOption.textContent = `Весь ${selectedYear} год`;
+      monthSelect.appendChild(allOption);
+
+      yearMonths.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.month;
+        option.textContent = item.month;
+        monthSelect.appendChild(option);
+      });
+
+      monthSelect.value = selectedMonth;
+    }
+
+    yearSelect.addEventListener('change', () => {
+      selectedYear = Number(yearSelect.value);
+      selectedMonth = 'year';
+      populateMonthSelect();
       renderDashboard();
     });
 
+    monthSelect.addEventListener('change', () => {
+      selectedMonth = monthSelect.value;
+      renderDashboard();
+    });
+
+    function getYearMonths() {
+      return months.filter((item) => item.year === selectedYear);
+    }
+
     function getVisibleMonths() {
-      if (selectedPeriod === 'year') return months;
-      return [months[Number(selectedPeriod)]];
+      const yearMonths = getYearMonths();
+      if (selectedMonth === 'year') return yearMonths;
+      return yearMonths.filter((item) => item.month === selectedMonth);
     }
 
     function getAvailable(list = getVisibleMonths()) {
       return list.filter((item) => !item.missing);
+    }
+
+    function getYearPeriodNote() {
+      const yearMonths = getYearMonths();
+      const available = getAvailable(yearMonths);
+      const unavailable = yearMonths.length - available.length;
+      const monthText = available.length === yearMonths.length
+        ? `${available.length} месяцев`
+        : `${available.length} из ${yearMonths.length} месяцев`;
+      return unavailable
+        ? `${monthText}, есть пропуски в данных за ${selectedYear}`
+        : `${monthText} за ${selectedYear}`;
     }
 
     function calculateTotals(list = getVisibleMonths()) {
@@ -517,7 +585,7 @@
     }
 
     function renderKpis(totals, list) {
-      const singleMonth = selectedPeriod !== 'year';
+      const singleMonth = selectedMonth !== 'year';
       const hasData = getAvailable(list).length > 0;
       document.getElementById('kpi-impressions').textContent = hasData ? fmtInt(totals.impressions) : '-';
       document.getElementById('kpi-clicks').textContent = hasData ? fmtInt(totals.clicks) : '-';
@@ -527,7 +595,7 @@
       document.getElementById('kpi-position').textContent = fmtMaybe(totals.position, (value) => fmtFixed(value));
       document.getElementById('note-impressions').textContent = singleMonth ? 'За выбранный месяц' : 'Всего за доступные месяцы';
       document.getElementById('note-position').textContent = singleMonth ? 'За выбранный месяц' : 'Взвешено по показам';
-      document.getElementById('period-note').textContent = singleMonth ? list[0].period : 'Январь-март, май-декабрь 2025';
+      document.getElementById('period-note').textContent = singleMonth ? list[0].period : getYearPeriodNote();
     }
 
     function renderInsights(totals, list) {
@@ -542,7 +610,7 @@
         return;
       }
 
-      if (selectedPeriod === 'year') {
+      if (selectedMonth === 'year') {
         const bestCtr = available.reduce((best, item) => item.ctr > best.ctr ? item : best, available[0]);
         const maxSpend = available.reduce((best, item) => item.spend > best.spend ? item : best, available[0]);
         const maxCpc = available.reduce((best, item) => item.cpc > best.cpc ? item : best, available[0]);
@@ -587,12 +655,12 @@
         table.appendChild(tr);
       });
 
-      if (selectedPeriod === 'year') {
+      if (selectedMonth === 'year') {
         const totalRow = document.createElement('tr');
         totalRow.className = 'total-row';
         totalRow.innerHTML = `
           <td>Итого</td>
-          <td>11 доступных месяцев</td>
+          <td>${getAvailable(getYearMonths()).length} доступных месяцев</td>
           <td>${fmtInt(totals.impressions)}</td>
           <td>${fmtInt(totals.clicks)}</td>
           <td>${fmtPercent(totals.ctr)}</td>
@@ -605,7 +673,7 @@
     }
 
     function updateText(list) {
-      const singleMonth = selectedPeriod !== 'year';
+      const singleMonth = selectedMonth !== 'year';
       document.getElementById('volume-hint').textContent = singleMonth
         ? 'Столбец показывает показы выбранного месяца, точка показывает клики.'
         : 'Столбцы показывают показы, линия показывает клики. Апрель отсутствует в исходном файле.';
@@ -624,11 +692,12 @@
     function renderDashboard() {
       const list = getVisibleMonths();
       const totals = calculateTotals(list);
+      document.getElementById('dashboard-title').textContent = `Реклама «Фаворит - металл»: ${selectedYear}`;
       renderKpis(totals, list);
       renderInsights(totals, list);
       renderTable(totals, list);
       updateText(list);
-      const showCharts = selectedPeriod === 'year';
+      const showCharts = selectedMonth === 'year';
       document.getElementById('charts-section').classList.toggle('is-hidden', !showCharts);
       if (showCharts) {
         chartRenderers.forEach((render) => render());
@@ -768,6 +837,7 @@
     makeSvg('position-chart', (svg, width, height) => {
       drawLineChart(svg, width, height, 'position', colors.violet, (value) => fmtFixed(value), { invert: true });
     });
+    populateMonthSelect();
     renderDashboard();
   </script>
 </body>
