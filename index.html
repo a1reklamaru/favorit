@@ -720,10 +720,22 @@
       return start + ((value - min) / (max - min)) * (end - start);
     }
 
-    function drawAxes(svg, width, height, labels, plot) {
+    function drawAxes(svg, width, height, labels, plot, yOptions = {}) {
       [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
         const y = plot.bottom - tick * (plot.bottom - plot.top);
         svg.appendChild(node('line', { x1: plot.left, y1: y, x2: plot.right, y2: y, stroke: colors.line, 'stroke-width': 1 }));
+        if (yOptions.left) {
+          const value = yOptions.left.invert
+            ? yOptions.left.max - tick * (yOptions.left.max - yOptions.left.min)
+            : yOptions.left.min + tick * (yOptions.left.max - yOptions.left.min);
+          svg.appendChild(node('text', { x: plot.left - 8, y: y + 4, 'text-anchor': 'end', fill: colors.muted, 'font-size': 11 }, yOptions.left.formatter(value)));
+        }
+        if (yOptions.right) {
+          const value = yOptions.right.invert
+            ? yOptions.right.max - tick * (yOptions.right.max - yOptions.right.min)
+            : yOptions.right.min + tick * (yOptions.right.max - yOptions.right.min);
+          svg.appendChild(node('text', { x: plot.right + 8, y: y + 4, 'text-anchor': 'start', fill: colors.muted, 'font-size': 11 }, yOptions.right.formatter(value)));
+        }
       });
       labels.forEach((label, index) => {
         const x = scale(index, 0, labels.length - 1, plot.left, plot.right);
@@ -740,6 +752,25 @@
       svg.appendChild(node('text', { x: width / 2, y: height / 2, 'text-anchor': 'middle', fill: colors.muted, 'font-size': 15 }, 'Нет данных за выбранный период'));
     }
 
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function labelText(svg, text, x, y, anchor = 'middle', fill = colors.muted) {
+      svg.appendChild(node('text', {
+        x,
+        y,
+        'text-anchor': anchor,
+        fill,
+        'font-size': 11,
+        'font-weight': 700,
+        stroke: '#fff',
+        'stroke-width': 4,
+        'paint-order': 'stroke',
+        'stroke-linejoin': 'round'
+      }, text));
+    }
+
     function drawComboChart(svg, width, height, barsKey, lineKey, barColor, lineColor, lineFormat) {
       const chartMonths = getVisibleMonths();
       const chartAvailable = getAvailable(chartMonths);
@@ -747,10 +778,13 @@
         drawNoData(svg, width, height);
         return;
       }
-      const plot = { left: 48, right: width - 24, top: 20, bottom: height - 44 };
-      drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot);
+      const plot = { left: 70, right: width - 70, top: 34, bottom: height - 48 };
       const maxBar = Math.max(...chartAvailable.map((item) => item[barsKey])) * 1.12;
       const maxLine = Math.max(...chartAvailable.map((item) => item[lineKey])) * 1.15;
+      drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot, {
+        left: { min: 0, max: maxBar, formatter: barsKey === 'impressions' ? fmtInt : (value) => fmtMoney(value) },
+        right: { min: 0, max: maxLine, formatter: lineFormat }
+      });
       const slot = (plot.right - plot.left) / Math.max(chartMonths.length, 1);
       const barWidth = Math.max(12, slot * 0.52);
       const linePoints = [];
@@ -763,6 +797,7 @@
         }
         const y = scale(item[barsKey], 0, maxBar, plot.bottom, plot.top);
         svg.appendChild(node('rect', { x: x - barWidth / 2, y, width: barWidth, height: plot.bottom - y, rx: 4, fill: barColor, opacity: 0.86 }));
+        labelText(svg, barsKey === 'impressions' ? fmtInt(item[barsKey]) : fmtMoney(item[barsKey]), x, clamp(y - 7, plot.top + 8, plot.bottom - 6), 'middle', barColor);
         const lineY = scale(item[lineKey], 0, maxLine, plot.bottom, plot.top);
         linePoints.push([x, lineY, item[lineKey]]);
       });
@@ -770,6 +805,9 @@
       svg.appendChild(node('path', { d: linePoints.map((point, index) => `${index ? 'L' : 'M'} ${point[0]} ${point[1]}`).join(' '), fill: 'none', stroke: lineColor, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
       linePoints.forEach((point) => {
         svg.appendChild(node('circle', { cx: point[0], cy: point[1], r: 4, fill: lineColor, stroke: '#fff', 'stroke-width': 2 }));
+        const labelX = point[0] > plot.right - 48 ? point[0] - 8 : point[0] + 8;
+        const anchor = point[0] > plot.right - 48 ? 'end' : 'start';
+        labelText(svg, lineFormat(point[2]), labelX, clamp(point[1] - 12, plot.top + 8, plot.bottom - 6), anchor, lineColor);
       });
 
       svg.appendChild(node('text', { x: plot.left, y: 14, fill: colors.muted, 'font-size': 12 }, barsKey === 'impressions' ? 'показы' : 'руб.'));
@@ -783,8 +821,7 @@
         drawNoData(svg, width, height);
         return;
       }
-      const plot = { left: 44, right: width - 24, top: 20, bottom: height - 44 };
-      drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot);
+      const plot = { left: 70, right: width - 32, top: 34, bottom: height - 48 };
       const values = chartAvailable.map((item) => item[key]);
       let min = options.zeroBase ? 0 : Math.min(...values) * 0.92;
       let max = Math.max(...values) * 1.08;
@@ -792,6 +829,9 @@
         min = Math.min(...values) * 0.94;
         max = Math.max(...values) * 1.04;
       }
+      drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot, {
+        left: { min, max, formatter, invert: options.invert }
+      });
       const points = [];
 
       chartMonths.forEach((item, index) => {
@@ -811,6 +851,7 @@
       svg.appendChild(node('path', { d: points.map((point, index) => `${index ? 'L' : 'M'} ${point[0]} ${point[1]}`).join(' '), fill: 'none', stroke: color, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
       points.forEach((point) => {
         svg.appendChild(node('circle', { cx: point[0], cy: point[1], r: 4, fill: color, stroke: '#fff', 'stroke-width': 2 }));
+        labelText(svg, formatter(point[2]), point[0], clamp(point[1] - 10, plot.top + 8, plot.bottom - 6), 'middle', color);
       });
       svg.appendChild(node('text', { x: plot.left, y: 14, fill: colors.muted, 'font-size': 12 }, formatter(min)));
       svg.appendChild(node('text', { x: plot.right, y: 14, 'text-anchor': 'end', fill: colors.muted, 'font-size': 12 }, formatter(max)));
