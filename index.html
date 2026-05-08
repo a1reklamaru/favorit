@@ -824,10 +824,10 @@
         left: { ...axis, formatter }
       });
       const slot = (plot.right - plot.left) / Math.max(chartMonths.length, 1);
-      const barWidth = Math.max(12, slot * 0.52);
+      const barWidth = Math.max(10, Math.min(34, slot * 0.44));
 
       chartMonths.forEach((item, index) => {
-        const x = scale(index, 0, chartMonths.length - 1, plot.left, plot.right);
+        const x = plot.left + slot * (index + 0.5);
         if (item.missing) {
           drawMissing(svg, x, plot);
           return;
