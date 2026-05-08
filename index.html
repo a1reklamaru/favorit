@@ -171,7 +171,8 @@
 
     .panel {
       padding: 18px;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
 
     .is-hidden {
@@ -192,6 +193,7 @@
 
     .chart {
       width: 100%;
+      min-width: 680px;
       height: 330px;
       display: block;
     }
@@ -368,21 +370,37 @@
 
     <section class="grid" id="charts-section">
       <article class="panel">
-        <h2>Охват и трафик по месяцам</h2>
-        <p class="hint" id="volume-hint">Столбцы показывают показы, линия показывает клики. Апрель отсутствует в исходном файле.</p>
-        <svg id="volume-chart" class="chart" role="img" aria-label="Показы и клики по месяцам"></svg>
+        <h2>Показы</h2>
+        <p class="hint" id="impressions-hint">Охват рекламной кампании по месяцам.</p>
+        <svg id="impressions-chart" class="chart compact" role="img" aria-label="Показы по месяцам"></svg>
         <div class="legend">
           <span><i class="dot" style="background: var(--blue)"></i>Показы</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Клики</h2>
+        <p class="hint" id="clicks-hint">Переходы по рекламным объявлениям.</p>
+        <svg id="clicks-chart" class="chart compact" role="img" aria-label="Клики по месяцам"></svg>
+        <div class="legend">
           <span><i class="dot" style="background: var(--green)"></i>Клики</span>
         </div>
       </article>
 
       <article class="panel">
-        <h2>Расход и цена клика</h2>
-        <p class="hint" id="cost-hint">Столбцы показывают расход, линия показывает средний CPC.</p>
-        <svg id="cost-chart" class="chart compact" role="img" aria-label="Расход и средняя цена клика"></svg>
+        <h2>Расход</h2>
+        <p class="hint" id="spend-hint">Потраченный рекламный бюджет по месяцам.</p>
+        <svg id="spend-chart" class="chart compact" role="img" aria-label="Расход по месяцам"></svg>
         <div class="legend">
           <span><i class="dot" style="background: var(--amber)"></i>Расход</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Средняя цена клика</h2>
+        <p class="hint" id="cpc-hint">Средний CPC по месяцам.</p>
+        <svg id="cpc-chart" class="chart compact" role="img" aria-label="Средняя цена клика по месяцам"></svg>
+        <div class="legend">
           <span><i class="dot" style="background: var(--red)"></i>CPC</span>
         </div>
       </article>
@@ -665,12 +683,18 @@
         ? ` ${missingMonths.join(', ')} отсутствует в исходных данных.`
         : '';
       const bestCtr = getAvailable(yearMonths).reduce((best, item) => item.ctr > best.ctr ? item : best, getAvailable(yearMonths)[0]);
-      document.getElementById('volume-hint').textContent = singleMonth
-        ? 'Столбец показывает показы выбранного месяца, точка показывает клики.'
-        : `Столбцы показывают показы, линия показывает клики.${missingHint}`;
-      document.getElementById('cost-hint').textContent = singleMonth
-        ? 'Столбец показывает расход выбранного месяца, точка показывает средний CPC.'
-        : 'Столбцы показывают расход, линия показывает средний CPC.';
+      document.getElementById('impressions-hint').textContent = singleMonth
+        ? 'Показы за выбранный месяц.'
+        : `Показы по месяцам с ровной шкалой по вертикальной оси.${missingHint}`;
+      document.getElementById('clicks-hint').textContent = singleMonth
+        ? 'Клики за выбранный месяц.'
+        : 'Клики по месяцам отдельно от показов.';
+      document.getElementById('spend-hint').textContent = singleMonth
+        ? 'Расход за выбранный месяц.'
+        : 'Расход по месяцам с округленными делениями шкалы.';
+      document.getElementById('cpc-hint').textContent = singleMonth
+        ? 'Средняя цена клика за выбранный месяц.'
+        : 'Средняя цена клика по месяцам отдельно от расхода.';
       document.getElementById('ctr-hint').textContent = singleMonth
         ? 'CTR выбранного месяца: доля кликов от показов.'
         : `Доля кликов от показов. Лучший месяц по CTR - ${bestCtr.month.toLowerCase()}.`;
@@ -720,22 +744,40 @@
       return start + ((value - min) / (max - min)) * (end - start);
     }
 
+    function niceStep(rawStep) {
+      if (!Number.isFinite(rawStep) || rawStep <= 0) return 1;
+      const power = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const scaled = rawStep / power;
+      const nice = scaled <= 1 ? 1 : scaled <= 2 ? 2 : scaled <= 5 ? 5 : 10;
+      return nice * power;
+    }
+
+    function getAxis(values, options = {}) {
+      const maxValue = Math.max(...values);
+      const minValue = options.zeroBase ? 0 : Math.min(...values);
+      const step = niceStep((maxValue - minValue || maxValue || 1) / 4);
+      const min = options.zeroBase ? 0 : Math.floor(minValue / step) * step;
+      const max = Math.ceil(maxValue / step) * step || step;
+      const ticks = [];
+      for (let value = min; value <= max + step / 2; value += step) {
+        ticks.push(Number(value.toFixed(10)));
+      }
+      return { min, max, ticks };
+    }
+
+    function yPosition(value, axis, plot, invert = false) {
+      return invert
+        ? scale(value, axis.min, axis.max, plot.top, plot.bottom)
+        : scale(value, axis.min, axis.max, plot.bottom, plot.top);
+    }
+
     function drawAxes(svg, width, height, labels, plot, yOptions = {}) {
-      [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
-        const y = plot.bottom - tick * (plot.bottom - plot.top);
+      const left = yOptions.left;
+      const ticks = left?.ticks || [];
+      ticks.forEach((value) => {
+        const y = yPosition(value, left, plot, left.invert);
         svg.appendChild(node('line', { x1: plot.left, y1: y, x2: plot.right, y2: y, stroke: colors.line, 'stroke-width': 1 }));
-        if (yOptions.left) {
-          const value = yOptions.left.invert
-            ? yOptions.left.max - tick * (yOptions.left.max - yOptions.left.min)
-            : yOptions.left.min + tick * (yOptions.left.max - yOptions.left.min);
-          svg.appendChild(node('text', { x: plot.left - 8, y: y + 4, 'text-anchor': 'end', fill: colors.muted, 'font-size': 11 }, yOptions.left.formatter(value)));
-        }
-        if (yOptions.right) {
-          const value = yOptions.right.invert
-            ? yOptions.right.max - tick * (yOptions.right.max - yOptions.right.min)
-            : yOptions.right.min + tick * (yOptions.right.max - yOptions.right.min);
-          svg.appendChild(node('text', { x: plot.right + 8, y: y + 4, 'text-anchor': 'start', fill: colors.muted, 'font-size': 11 }, yOptions.right.formatter(value)));
-        }
+        svg.appendChild(node('text', { x: plot.left - 8, y: y + 4, 'text-anchor': 'end', fill: colors.muted, 'font-size': 11 }, left.formatter(value)));
       });
       labels.forEach((label, index) => {
         const x = scale(index, 0, labels.length - 1, plot.left, plot.right);
@@ -771,23 +813,20 @@
       }, text));
     }
 
-    function drawComboChart(svg, width, height, barsKey, lineKey, barColor, lineColor, lineFormat) {
+    function drawBarChart(svg, width, height, key, color, formatter) {
       const chartMonths = getVisibleMonths();
       const chartAvailable = getAvailable(chartMonths);
       if (!chartAvailable.length) {
         drawNoData(svg, width, height);
         return;
       }
-      const plot = { left: 70, right: width - 70, top: 34, bottom: height - 48 };
-      const maxBar = Math.max(...chartAvailable.map((item) => item[barsKey])) * 1.12;
-      const maxLine = Math.max(...chartAvailable.map((item) => item[lineKey])) * 1.15;
+      const plot = { left: 76, right: width - 28, top: 34, bottom: height - 48 };
+      const axis = getAxis(chartAvailable.map((item) => item[key]), { zeroBase: true });
       drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot, {
-        left: { min: 0, max: maxBar, formatter: barsKey === 'impressions' ? fmtInt : (value) => fmtMoney(value) },
-        right: { min: 0, max: maxLine, formatter: lineFormat }
+        left: { ...axis, formatter }
       });
       const slot = (plot.right - plot.left) / Math.max(chartMonths.length, 1);
       const barWidth = Math.max(12, slot * 0.52);
-      const linePoints = [];
 
       chartMonths.forEach((item, index) => {
         const x = scale(index, 0, chartMonths.length - 1, plot.left, plot.right);
@@ -795,23 +834,10 @@
           drawMissing(svg, x, plot);
           return;
         }
-        const y = scale(item[barsKey], 0, maxBar, plot.bottom, plot.top);
-        svg.appendChild(node('rect', { x: x - barWidth / 2, y, width: barWidth, height: plot.bottom - y, rx: 4, fill: barColor, opacity: 0.86 }));
-        labelText(svg, barsKey === 'impressions' ? fmtInt(item[barsKey]) : fmtMoney(item[barsKey]), x, clamp(y - 7, plot.top + 8, plot.bottom - 6), 'middle', barColor);
-        const lineY = scale(item[lineKey], 0, maxLine, plot.bottom, plot.top);
-        linePoints.push([x, lineY, item[lineKey]]);
+        const y = yPosition(item[key], axis, plot);
+        svg.appendChild(node('rect', { x: x - barWidth / 2, y, width: barWidth, height: plot.bottom - y, rx: 4, fill: color, opacity: 0.86 }));
+        labelText(svg, formatter(item[key]), x, clamp(y - 7, plot.top + 8, plot.bottom - 6), 'middle', color);
       });
-
-      svg.appendChild(node('path', { d: linePoints.map((point, index) => `${index ? 'L' : 'M'} ${point[0]} ${point[1]}`).join(' '), fill: 'none', stroke: lineColor, 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
-      linePoints.forEach((point) => {
-        svg.appendChild(node('circle', { cx: point[0], cy: point[1], r: 4, fill: lineColor, stroke: '#fff', 'stroke-width': 2 }));
-        const labelX = point[0] > plot.right - 48 ? point[0] - 8 : point[0] + 8;
-        const anchor = point[0] > plot.right - 48 ? 'end' : 'start';
-        labelText(svg, lineFormat(point[2]), labelX, clamp(point[1] - 12, plot.top + 8, plot.bottom - 6), anchor, lineColor);
-      });
-
-      svg.appendChild(node('text', { x: plot.left, y: 14, fill: colors.muted, 'font-size': 12 }, barsKey === 'impressions' ? 'показы' : 'руб.'));
-      svg.appendChild(node('text', { x: plot.right, y: 14, 'text-anchor': 'end', fill: colors.muted, 'font-size': 12 }, lineFormat(maxLine / 1.15)));
     }
 
     function drawLineChart(svg, width, height, key, color, formatter, options = {}) {
@@ -821,16 +847,11 @@
         drawNoData(svg, width, height);
         return;
       }
-      const plot = { left: 70, right: width - 32, top: 34, bottom: height - 48 };
+      const plot = { left: 76, right: width - 32, top: 34, bottom: height - 48 };
       const values = chartAvailable.map((item) => item[key]);
-      let min = options.zeroBase ? 0 : Math.min(...values) * 0.92;
-      let max = Math.max(...values) * 1.08;
-      if (options.invert) {
-        min = Math.min(...values) * 0.94;
-        max = Math.max(...values) * 1.04;
-      }
+      const axis = getAxis(values, { zeroBase: options.zeroBase });
       drawAxes(svg, width, height, chartMonths.map((item) => item.short), plot, {
-        left: { min, max, formatter, invert: options.invert }
+        left: { ...axis, formatter, invert: options.invert }
       });
       const points = [];
 
@@ -841,8 +862,8 @@
           return;
         }
         const y = options.invert
-          ? scale(item[key], min, max, plot.top, plot.bottom)
-          : scale(item[key], min, max, plot.bottom, plot.top);
+          ? yPosition(item[key], axis, plot, true)
+          : yPosition(item[key], axis, plot);
         points.push([x, y, item[key]]);
       });
 
@@ -853,15 +874,19 @@
         svg.appendChild(node('circle', { cx: point[0], cy: point[1], r: 4, fill: color, stroke: '#fff', 'stroke-width': 2 }));
         labelText(svg, formatter(point[2]), point[0], clamp(point[1] - 10, plot.top + 8, plot.bottom - 6), 'middle', color);
       });
-      svg.appendChild(node('text', { x: plot.left, y: 14, fill: colors.muted, 'font-size': 12 }, formatter(min)));
-      svg.appendChild(node('text', { x: plot.right, y: 14, 'text-anchor': 'end', fill: colors.muted, 'font-size': 12 }, formatter(max)));
     }
 
-    makeSvg('volume-chart', (svg, width, height) => {
-      drawComboChart(svg, width, height, 'impressions', 'clicks', colors.blue, colors.green, fmtInt);
+    makeSvg('impressions-chart', (svg, width, height) => {
+      drawBarChart(svg, width, height, 'impressions', colors.blue, fmtInt);
     });
-    makeSvg('cost-chart', (svg, width, height) => {
-      drawComboChart(svg, width, height, 'spend', 'cpc', colors.amber, colors.red, (value) => fmtFixed(value) + ' ₽');
+    makeSvg('clicks-chart', (svg, width, height) => {
+      drawLineChart(svg, width, height, 'clicks', colors.green, fmtInt, { zeroBase: true });
+    });
+    makeSvg('spend-chart', (svg, width, height) => {
+      drawBarChart(svg, width, height, 'spend', colors.amber, (value) => fmtMoney(value) + ' ₽');
+    });
+    makeSvg('cpc-chart', (svg, width, height) => {
+      drawLineChart(svg, width, height, 'cpc', colors.red, (value) => fmtFixed(value) + ' ₽', { zeroBase: true });
     });
     makeSvg('ctr-chart', (svg, width, height) => {
       drawLineChart(svg, width, height, 'ctr', colors.green, fmtPercent, { zeroBase: true });
